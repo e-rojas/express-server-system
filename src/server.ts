@@ -1,11 +1,6 @@
-import express from 'express';
+import App from './app';
+import PostsController from './controllers/posts.controller';
 
-const app = express();
+const app = new App([new PostsController()], 6000);
 
-app.get('/', (request, response) => {
-  response.send('Hello World!');
-});
-
-app.listen(3000, () => {
-  console.log('Server is running on port 3000');
-});
+app.listen();
