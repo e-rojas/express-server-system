@@ -4,7 +4,9 @@
   "description": "An express server written in Typescript using the MVC model.",
   "main": "index.js",
   "scripts": {
-    "dev": "ts-node ./src/server.ts"
+    "dev": "ts-node ./src/server.ts",
+    "build": "ts-node ./src/server.ts",
+    "start": "node ./dist/server.js"
   },
   "repository": {
     "type": "git",
