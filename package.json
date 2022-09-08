@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "ts-node ./src/server.ts",
     "build": "ts-node ./src/server.ts",
-    "start": "node ./dist/server.js"
+    "start": "node dist/server.js",
+    "postinstall": "tsc"
   },
   "repository": {
     "type": "git",
