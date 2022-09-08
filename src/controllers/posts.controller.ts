@@ -1,6 +1,8 @@
 import express, { response } from 'express';
+import HttpException from '../exceptions/HttpException';
 import Post from '../interfaces/post.interface';
 import postModel from '../models/posts.model';
+import NotFoundByIdException from '../exceptions/NotFoundById.exception';
 class PostsController {
   public path = '/posts';
   public router = express.Router();
@@ -32,18 +34,34 @@ class PostsController {
       });
   };
 
-  private getPostById = (req: express.Request, res: express.Response) => {
+  private getPostById = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     const id = req.params.id;
     this.post.findById(id).then((post) => {
-      res.send(post);
+      if (post) {
+        res.send(post);
+      } else {
+        next(new NotFoundByIdException('Post', id));
+      }
     });
   };
 
-  private modifyPost = (req: express.Request, res: express.Response) => {
+  private modifyPost = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     const id = req.params.id;
     const post: Post = req.body;
     this.post.findByIdAndUpdate(id, post, { new: true }).then((updatedPost) => {
-      res.send(updatedPost);
+      if (updatedPost) {
+        res.send(updatedPost);
+      } else {
+        next(new NotFoundByIdException('Post', id));
+      }
     });
   };
 
@@ -55,7 +73,11 @@ class PostsController {
     });
   };
 
-  private deletePost = (req: express.Request, res: express.Response) => {
+  private deletePost = (
+    req: express.Request,
+    res: express.Response,
+    next: express.NextFunction
+  ) => {
     const id = req.params.id;
     this.post.findByIdAndDelete(id).then((success) => {
       if (success) {
@@ -63,9 +85,7 @@ class PostsController {
           message: 'Post deleted successfully',
         });
       } else {
-        response.send(404).json({
-          message: 'Post not found',
-        });
+        next(new NotFoundByIdException('Post', id));
       }
     });
   };

@@ -1,7 +1,9 @@
 import express from 'express';
 import * as bodyParser from 'body-parser';
 import Controller from './interfaces/controller.interface';
+
 import mongoose from 'mongoose';
+import errorMiddleware from './middleware/error. middleware';
 class App {
   public app: express.Application;
   public port: number;
@@ -12,6 +14,7 @@ class App {
     this.connectToDatabase();
     this.initializeMiddewares();
     this.initializeControllers(controllers);
+    this.initializeErrorHandling();
   }
 
   private initializeMiddewares() {
@@ -22,6 +25,10 @@ class App {
     controllers.forEach((controller) => {
       this.app.use('/', controller.router);
     });
+  }
+
+  private initializeErrorHandling() {
+    this.app.use(errorMiddleware);
   }
 
   private connectToDatabase() {
