@@ -1,5 +1,6 @@
-import express, { response } from 'express';
-import HttpException from '../exceptions/HttpException';
+import express from 'express';
+import validationMiddleware from '../middleware/validation.middleware';
+import CreatePostDTO from '../DTO/post.dto';
 import Post from '../interfaces/post.interface';
 import postModel from '../models/posts.model';
 import NotFoundByIdException from '../exceptions/NotFoundById.exception';
@@ -15,8 +16,16 @@ class PostsController {
   public initializeRoutes() {
     this.router.get(this.path, this.getAllPosts);
     this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.patch(`${this.path}/:id`, this.modifyPost);
-    this.router.post(this.path, this.createPost);
+    this.router.patch(
+      `${this.path}/:id`,
+      validationMiddleware(CreatePostDTO, true),
+      this.modifyPost
+    );
+    this.router.post(
+      this.path,
+      validationMiddleware(CreatePostDTO),
+      this.createPost
+    );
     this.router.delete(`${this.path}/:id`, this.deletePost);
   }
 
