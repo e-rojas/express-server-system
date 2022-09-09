@@ -1,3 +1,5 @@
-export default interface DataStoredInToken {
+interface DataStoredInToken {
   _id: string;
 }
+
+export default DataStoredInToken;

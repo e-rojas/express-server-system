@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import express from 'express';
 import UserWithThatEmailAlreadyExistsException from '..//exceptions/UserWithThatEmailAlreadyExistsException.exception';
-import WrongCredentialsException from '../exceptions/UserWithThatEmailAlreadyExistsException.exception';
+import WrongCredentialsException from '../exceptions/WrongCredentialsException.exception';
 import CreateUserDTO from '../DTO/createUser.dto';
 import userModel from '../models/user.model';
 import LogInDTO from '..//DTO//logIn.dto';
@@ -70,14 +70,13 @@ class AuthenticationController implements Controller {
       );
       if (isPasswordMatching) {
         response.send({
-          email: user.email,
           name: user.name,
         });
       } else {
-        next(new WrongCredentialsException(logInData.email));
+        next(new WrongCredentialsException());
       }
     } else {
-      next(new WrongCredentialsException(logInData.email));
+      next(new WrongCredentialsException());
     }
   };
   private createToken(user: User): TokenData {
