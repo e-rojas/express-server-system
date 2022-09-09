@@ -2,7 +2,7 @@ import express from 'express';
 import validationMiddleware from '../middleware/validation.middleware';
 import CreatePostDTO from '../DTO/post.dto';
 import Post from '../interfaces/post.interface';
-import postModel from '../models/posts.model';
+import postModel from '../models/post.model';
 import NotFoundByIdException from '../exceptions/NotFoundById.exception';
 class PostsController {
   public path = '/posts';
