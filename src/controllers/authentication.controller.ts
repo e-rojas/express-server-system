@@ -69,6 +69,8 @@ class AuthenticationController implements Controller {
         user.password
       );
       if (isPasswordMatching) {
+        const tokenData = this.createToken(user);
+        response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
         response.send({
           name: user.name,
         });
@@ -91,7 +93,7 @@ class AuthenticationController implements Controller {
     };
   }
   private createCookie(tokenData: TokenData) {
-    return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn} Path=/`;
+    return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn}`;
   }
 }
 

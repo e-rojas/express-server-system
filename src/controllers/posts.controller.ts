@@ -4,6 +4,9 @@ import CreatePostDTO from '../DTO/post.dto';
 import Post from '../interfaces/post.interface';
 import postModel from '../models/post.model';
 import NotFoundByIdException from '../exceptions/NotFoundById.exception';
+import authMiddleware from '../middleware/auth.middleware';
+import RequestWithUser from '../interfaces/requestWithUser.interface';
+import { log } from 'console';
 class PostsController {
   public path = '/posts';
   public router = express.Router();
@@ -16,17 +19,29 @@ class PostsController {
   public initializeRoutes() {
     this.router.get(this.path, this.getAllPosts);
     this.router.get(`${this.path}/:id`, this.getPostById);
-    this.router.patch(
-      `${this.path}/:id`,
-      validationMiddleware(CreatePostDTO, true),
-      this.modifyPost
-    );
-    this.router.post(
-      this.path,
-      validationMiddleware(CreatePostDTO),
-      this.createPost
-    );
-    this.router.delete(`${this.path}/:id`, this.deletePost);
+    /* this.router
+      .all(`${this.path}/*`, authMiddleware)
+      .patch(
+        `${this.path}/:id`,
+        validationMiddleware(CreatePostDTO, true),
+        this.modifyPost
+      )
+      .post(this.path, validationMiddleware(CreatePostDTO), this.createPost)
+      .delete(`${this.path}/:id`, this.deletePost); */
+    this.router
+      .all(`${this.path}/*`, authMiddleware)
+      .patch(
+        `${this.path}/:id`,
+        validationMiddleware(CreatePostDTO, true),
+        this.modifyPost
+      )
+      .delete(`${this.path}/:id`, this.deletePost)
+      .post(
+        this.path,
+        authMiddleware,
+        validationMiddleware(CreatePostDTO),
+        this.createPost
+      );
   }
 
   private getAllPosts = (req: express.Request, res: express.Response) => {
@@ -74,9 +89,13 @@ class PostsController {
     });
   };
 
-  private createPost = async (req: express.Request, res: express.Response) => {
+  private createPost = async (req: RequestWithUser, res: express.Response) => {
     const newPost: Post = req.body;
-    const createdPost = new this.post(newPost);
+    const createdPost = new this.post({
+      ...newPost,
+      authorId: req.user?._id,
+      author: req.user?.name,
+    });
     createdPost.save().then((newpost) => {
       res.send(newpost);
     });
