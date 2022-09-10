@@ -27,11 +27,14 @@ class AuthenticationController implements Controller {
       validationMiddleware(CreateUserDTO),
       this.registration
     );
+
     this.router.post(
       `${this.path}/login`,
       validationMiddleware(LogInDTO),
       this.loggingIn
     );
+
+    this.router.post(`${this.path}/logout`, this.loggingOut);
   }
   private registration = async (
     request: express.Request,
@@ -81,6 +84,17 @@ class AuthenticationController implements Controller {
       next(new WrongCredentialsException());
     }
   };
+
+  private loggingOut = (
+    request: express.Request,
+    response: express.Response
+  ) => {
+    response.setHeader('Set-Cookie', ['Authorization=; Max-Age=0']);
+    response.status(200).send({
+      message: 'Successfully logged out',
+    });
+  };
+
   private createToken(user: User): TokenData {
     const expiresIn = 60 * 60;
     const secret = process.env.JWT_SECRET as string;
