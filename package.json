@@ -4,7 +4,7 @@
   "description": "An express server written in Typescript using the MVC model.",
   "main": "index.js",
   "engines": {
-    "node": "14.x"
+    "node": "16.x"
   },
   "scripts": {
     "start": "node dist/server.js",

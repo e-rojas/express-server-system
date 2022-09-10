@@ -1,7 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import express from 'express';
 import UserWithThatEmailAlreadyExistsException from '..//exceptions/UserWithThatEmailAlreadyExistsException.exception';
-import WrongCredentialsException from '../exceptions/UserWithThatEmailAlreadyExistsException.exception';
+import WrongCredentialsException from '../exceptions/WrongCredentialsException.exception';
 import CreateUserDTO from '../DTO/createUser.dto';
 import userModel from '../models/user.model';
 import LogInDTO from '..//DTO//logIn.dto';
@@ -27,11 +27,14 @@ class AuthenticationController implements Controller {
       validationMiddleware(CreateUserDTO),
       this.registration
     );
+
     this.router.post(
       `${this.path}/login`,
       validationMiddleware(LogInDTO),
       this.loggingIn
     );
+
+    this.router.post(`${this.path}/logout`, this.loggingOut);
   }
   private registration = async (
     request: express.Request,
@@ -69,17 +72,29 @@ class AuthenticationController implements Controller {
         user.password
       );
       if (isPasswordMatching) {
+        const tokenData = this.createToken(user);
+        response.setHeader('Set-Cookie', [this.createCookie(tokenData)]);
         response.send({
-          email: user.email,
           name: user.name,
         });
       } else {
-        next(new WrongCredentialsException(logInData.email));
+        next(new WrongCredentialsException());
       }
     } else {
-      next(new WrongCredentialsException(logInData.email));
+      next(new WrongCredentialsException());
     }
   };
+
+  private loggingOut = (
+    request: express.Request,
+    response: express.Response
+  ) => {
+    response.setHeader('Set-Cookie', ['Authorization=; Max-Age=0']);
+    response.status(200).send({
+      message: 'Successfully logged out',
+    });
+  };
+
   private createToken(user: User): TokenData {
     const expiresIn = 60 * 60;
     const secret = process.env.JWT_SECRET as string;
@@ -92,7 +107,7 @@ class AuthenticationController implements Controller {
     };
   }
   private createCookie(tokenData: TokenData) {
-    return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn} Path=/`;
+    return `Authorization=${tokenData.token}; HttpOnly; Max-Age=${tokenData.expiresIn}`;
   }
 }
 

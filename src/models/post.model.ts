@@ -5,6 +5,7 @@ const postSchema = new mongoose.Schema({
   title: String,
   content: String,
   author: String,
+  authorId: String,
 });
 
 const PostModel = mongoose.model<Post & mongoose.Document>('Post', postSchema);
