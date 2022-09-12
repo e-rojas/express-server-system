@@ -93,12 +93,11 @@ class PostsController {
     const newPost: Post = req.body;
     const createdPost = new this.post({
       ...newPost,
-      authorId: req.user?._id,
-      author: req.user?.name,
+      author: req.user?._id,
     });
-    createdPost.save().then((newpost) => {
-      res.send(newpost);
-    });
+    const savedPost = await createdPost.save();
+    await savedPost.populate('author', '-password');
+    res.send(savedPost);
   };
 
   private deletePost = (
