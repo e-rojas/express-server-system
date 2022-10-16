@@ -47,7 +47,6 @@ class App {
       .connect(`mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@${MONGO_PATH}`)
       .then(() => {
         console.log('⚡️[db connection]: success!! ヽ(ヅ)ノ');
-        console.log(`White listed address: ${process.env.CLIENT_HOST}`);
       })
       .catch((err) => console.log('Error during connection! (✖╭╮✖)', err));
   }
