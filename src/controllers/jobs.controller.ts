@@ -18,8 +18,10 @@ class JobsController {
   }
 
   private getAllJobs = (req: express.Request, res: express.Response) => {
-    const reqURL = req.protocol + '://' + req.get('host') + req.originalUrl;
-    console.log('reqURL: ', reqURL);
+    // find the web address where the request came from
+    const origin = req.get('origin');
+    console.log('origin: ', origin);
+
     this.job
       .find()
       .then((jobs) => {
