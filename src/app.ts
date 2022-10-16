@@ -26,7 +26,6 @@ class App {
     this.app.use(
       cors({
         credentials: true,
-        origin: [`${process.env.LOCAL_HOST}`, `${process.env.CLIENT_HOST}`],
       })
     );
   }
