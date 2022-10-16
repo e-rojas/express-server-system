@@ -6,7 +6,7 @@ import postModel from '../models/post.model';
 import NotFoundByIdException from '../exceptions/NotFoundById.exception';
 import authMiddleware from '../middleware/auth.middleware';
 import RequestWithUser from '../interfaces/requestWithUser.interface';
-import { log } from 'console';
+
 class PostsController {
   public path = '/posts';
   public router = express.Router();
@@ -19,15 +19,6 @@ class PostsController {
   public initializeRoutes() {
     this.router.get(this.path, this.getAllPosts);
     this.router.get(`${this.path}/:id`, this.getPostById);
-    /* this.router
-      .all(`${this.path}/*`, authMiddleware)
-      .patch(
-        `${this.path}/:id`,
-        validationMiddleware(CreatePostDTO, true),
-        this.modifyPost
-      )
-      .post(this.path, validationMiddleware(CreatePostDTO), this.createPost)
-      .delete(`${this.path}/:id`, this.deletePost); */
     this.router
       .all(`${this.path}/*`, authMiddleware)
       .patch(
@@ -93,12 +84,11 @@ class PostsController {
     const newPost: Post = req.body;
     const createdPost = new this.post({
       ...newPost,
-      authorId: req.user?._id,
-      author: req.user?.name,
+      author: req.user?._id,
     });
-    createdPost.save().then((newpost) => {
-      res.send(newpost);
-    });
+    const savedPost = await createdPost.save();
+    await savedPost.populate('author', '-password');
+    res.send(savedPost);
   };
 
   private deletePost = (
