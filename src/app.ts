@@ -2,9 +2,11 @@ import express from 'express';
 import * as bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 import Controller from './interfaces/controller.interface';
-
+import cors from 'cors';
 import mongoose from 'mongoose';
 import errorMiddleware from './middleware/error. middleware';
+import dotenv from 'dotenv';
+dotenv.config();
 class App {
   public app: express.Application;
   public port: number;
@@ -21,6 +23,12 @@ class App {
   private initializeMiddewares() {
     this.app.use(bodyParser.json());
     this.app.use(cookieParser());
+    this.app.use(
+      cors({
+        credentials: true,
+        origin: [`${process.env.LOCAL_HOST}`, `${process.env.CLIENT_HOST}`],
+      })
+    );
   }
 
   private initializeControllers(controllers: Controller[]) {
