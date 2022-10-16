@@ -1,3 +1,4 @@
+import { log } from 'console';
 import express from 'express';
 import Job from '../interfaces/job.interface';
 import jobModel from '../models/job.model';
@@ -17,6 +18,8 @@ class JobsController {
   }
 
   private getAllJobs = (req: express.Request, res: express.Response) => {
+    const reqURL = req.protocol + '://' + req.get('host') + req.originalUrl;
+    console.log('reqURL: ', reqURL);
     this.job
       .find()
       .then((jobs) => {
