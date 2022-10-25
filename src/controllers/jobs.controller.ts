@@ -1,6 +1,4 @@
-import { log } from 'console';
 import express from 'express';
-import Job from '../interfaces/job.interface';
 import jobModel from '../models/job.model';
 
 class JobsController {
