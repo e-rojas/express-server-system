@@ -1,6 +1,7 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import pokemonModel from '../models/pokemon.model';
 import CreatePokemonDTO from '../DTO/pokemon.dto';
+import PokemonWithNameAlreadyExistExecption from '..//exceptions//PokemonWithNameAlreadyExistExecption.exception';
 class PokemonsController {
   public path = '/pokemons';
   public router = express.Router();
@@ -12,6 +13,7 @@ class PokemonsController {
 
   private initializeRoutes() {
     this.router.get(this.path, this.getAllPokemons);
+    this.router.post(this.path, this.createPokemon);
   }
 
   private getAllPokemons = (req: express.Request, res: express.Response) => {
@@ -28,20 +30,31 @@ class PokemonsController {
       });
   };
 
-  private postPokemon = (req: express.Request, res: express.Response) => {
+  private createPokemon = async (
+    req: express.Request,
+    res: express.Response,
+    next: NextFunction
+  ) => {
     const pokemonData: CreatePokemonDTO = req.body;
-    const createdPokemon = new this.pokemon(pokemonData);
-    createdPokemon
-      .save()
-      .then((savedPokemon) => {
-        res.send(savedPokemon);
-      })
-      .catch((err) => {
-        res.status(500).json({
-          message: 'Error during saving pokemon',
-          error: err,
-        });
+    if (await this.pokemon.findOne({ name: pokemonData.name })) {
+      next(new PokemonWithNameAlreadyExistExecption(pokemonData.name));
+    } else {
+      const createdPokemon = new this.pokemon({
+        ...pokemonData,
+        saved: true,
       });
+      createdPokemon
+        .save()
+        .then((savedPokemon) => {
+          res.send(savedPokemon);
+        })
+        .catch((err) => {
+          res.status(500).json({
+            message: 'Error during creating pokemon',
+            error: err,
+          });
+        });
+    }
   };
 }
 

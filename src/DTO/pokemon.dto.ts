@@ -5,10 +5,10 @@ class CreatePokemonDTO {
   public name: string;
 
   @IsString()
-  public type: string;
+  public types: string[];
 
   @IsString()
-  public category: string;
+  public image_url: string;
 }
 
 export default CreatePokemonDTO;
