@@ -87,13 +87,6 @@ export class AuthorResolver {
     async recipes(@Root() author: Author) {
         const { _doc: { _id: id } } = JSON.parse(JSON.stringify(author));
         const recipes = await this.recipeService.findRecipesByAuthor(id);
-
-        // const recipes = await this.recipeService.getRecipes();
-        // const authorRecipes = recipes.filter((recipe) => {
-        //     const { _doc: { author: recipeAuthor } } = JSON.parse(JSON.stringify(recipe));
-        //     return recipeAuthor.toString() === id.toString();
-        // });
-        // return authorRecipes
         return recipes;
 
     }
@@ -131,8 +124,6 @@ export class RecipeResolver {
         const { _doc: { author: id } } = JSON.parse(JSON.stringify(recipe));
         const authorData = await this.authorService.getAuthor(id);
         return authorData;
-
-
     }
 
 
