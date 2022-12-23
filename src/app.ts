@@ -7,7 +7,7 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import errorMiddleware from './middleware/error. middleware';
 import { ApolloServer } from 'apollo-server-express';
-import recipeResolver from './graphql/recipe.resolver';
+import { RecipeResolver, AuthorResolver } from './graphql/recipe.resolver';
 import dotenv from 'dotenv';
 import { buildSchema } from 'type-graphql';
 dotenv.config();
@@ -39,7 +39,7 @@ class App {
 
   private async initializeApolloServer() {
     const schema = await buildSchema({
-      resolvers: [recipeResolver],
+      resolvers: [RecipeResolver, AuthorResolver],
     })
     const apolloServer = new ApolloServer({ schema });
     await apolloServer.start();

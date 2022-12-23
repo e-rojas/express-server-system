@@ -1,6 +1,21 @@
 import { MaxLength, Length, ArrayMaxSize } from 'class-validator';
-import { Resolver, Query, ObjectType, Field, ID, Arg, Mutation, InputType } from 'type-graphql'
+import { log } from 'console';
+import mongoose from 'mongoose';
 
+import {
+    Resolver,
+    Query,
+    ObjectType,
+    Field,
+    ID,
+    Arg,
+    Mutation,
+    InputType,
+    FieldResolver,
+    Root,
+} from 'type-graphql';
+import AuthorModel from '../models/author.model';
+import RecipeModel from '../models/recipe.model';
 
 @InputType()
 class NewRecipeInput {
@@ -8,37 +23,89 @@ class NewRecipeInput {
     @MaxLength(30)
     title: string;
 
-    @Field(type => String)
+    @Field((type) => String)
     @Length(30, 255)
     description: string;
 
-    @Field(type => [String])
+    @Field((type) => [String])
     @ArrayMaxSize(30)
     ingredients: string[];
 }
 
 @ObjectType()
-class Recipe {
-
-    @Field(type => ID)
+class Author {
+    @Field((type) => ID)
     id: string;
 
-    @Field(type => String)
+    @Field((type) => String)
+    name: string;
+
+    @Field((type) => String)
+    email: string;
+
+    @Field((type) => [Recipe])
+    recipes: Recipe[];
+}
+
+@ObjectType()
+class Recipe {
+    @Field((type) => ID)
+    id: string;
+
+    @Field((type) => String)
     title: string;
 
-    @Field(type => String)
+    @Field((type) => String)
     description: string;
 
-    @Field(type => Date)
+    @Field((type) => Date)
     creationDate: Date;
 
-    @Field(type => [String])
+    @Field((type) => [String])
     ingredients: string[];
+
+    @Field((type) => Author)
+    author: Author;
+}
+
+@Resolver(Author)
+export class AuthorResolver {
+    private authorService: AuthorService = new AuthorService();
+    private recipeService: RecipeService = new RecipeService();
+
+    @Query(() => Author)
+    async author(@Arg('id') id: string) {
+        return this.authorService.getAuthor(id);
+    }
+
+    @Query(() => [Author])
+    async authors() {
+        return this.authorService.getAuthors();
+    }
+
+    @FieldResolver()
+    async recipes(@Root() author: Author) {
+        const { _doc: { _id: id } } = JSON.parse(JSON.stringify(author));
+        const recipes = await this.recipeService.findRecipesByAuthor(id);
+
+        // const recipes = await this.recipeService.getRecipes();
+        // const authorRecipes = recipes.filter((recipe) => {
+        //     const { _doc: { author: recipeAuthor } } = JSON.parse(JSON.stringify(recipe));
+        //     return recipeAuthor.toString() === id.toString();
+        // });
+        // return authorRecipes
+        return recipes;
+
+    }
+
+
 }
 
 @Resolver(Recipe)
-class RecipeResolver {
+export class RecipeResolver {
+    private authorService: AuthorService = new AuthorService();
     private recipeService: RecipeService = new RecipeService();
+
     @Query(() => String)
     async hello() {
         return 'Hello World';
@@ -51,7 +118,7 @@ class RecipeResolver {
 
     @Query(() => String)
     async getName(@Arg('name') name: string) {
-        return `Hello ${name}`
+        return `Hello ${name}`;
     }
 
     @Query(() => Recipe)
@@ -59,78 +126,86 @@ class RecipeResolver {
         return this.recipeService.findById(id);
     }
 
-    @Mutation(() => Recipe)
-    async createRecipe(
-        @Arg('newRecipeData') { title, description, ingredients }: NewRecipeInput,
-    ) {
-        return await this.recipeService.createRecipe(title, description, ingredients);
+    @FieldResolver()
+    async author(@Root() recipe: Recipe) {
+        const { _doc: { author: id } } = JSON.parse(JSON.stringify(recipe));
+        const authorData = await this.authorService.getAuthor(id);
+        return authorData;
+
+
     }
 
 
-    /*  @Mutation(returns => Recipe)
-     @Authorized()
-     addRecipe(
-       @Arg("newRecipeData") newRecipeData: NewRecipeInput,
-       @Ctx("user") user: User,
-     ): Promise<Recipe> {
-       return this.recipeService.addNew({ data: newRecipeData, user });
-     } */
 
-
-
-
-
-
+    @Mutation(() => Recipe)
+    async updateRecipe(
+        @Arg('id') id: string,
+        @Arg('newRecipeData') { title, description, ingredients }: NewRecipeInput
+    ) {
+        return await this.recipeService.updateRecipe(
+            id,
+            title,
+            description,
+            ingredients
+        );
+    }
 }
 
+class AuthorService {
+    private author = AuthorModel;
 
+    public async getAuthor(id: string): Promise<Author> {
+        return await this.author.findById(id) as Author;
+    }
 
+    public async getAuthors(): Promise<Author[]> {
+        return await this.author.find({});
+    }
+
+    public typeObject(_id: string) {
+        const id = new mongoose.Types.ObjectId(_id);
+        return id;
+    }
+}
 
 class RecipeService {
-    private recipes: Recipe[] = [];
+    private recipe = RecipeModel;
+    private author = AuthorModel;
 
-    constructor() {
-        this.recipes.push({
-            id: '1',
-            title: 'Pizza',
-            description: 'A delicious pizza',
-            creationDate: new Date(),
-            ingredients: ['cheese', 'tomato', 'dough'],
-        } as Recipe);
+    public typeObject(_id: string) {
+        const id = new mongoose.Types.ObjectId(_id);
+        return id;
     }
 
-    public getRecipes(): Recipe[] {
-        return this.recipes;
+    public async getRecipes(): Promise<Recipe[]> {
+        return await this.recipe.find({});
     }
 
-    public findById(id: string): Recipe {
-        return this.recipes.find(recipe => recipe.id === id) as Recipe;
+    public async findById(id: string): Promise<Recipe> {
+        return (await this.recipe.findOne({ id })) as Recipe;
     }
 
-    public createRecipe(title: string, description: string, ingredients: string[]): Recipe {
+    public async findRecipesByAuthor(authorId: string): Promise<Recipe[]> {
+        const ID = this.typeObject(authorId);
+        const recipesbyAuthor = (await this.recipe.find({ author: ID })) as Recipe[];
+        return recipesbyAuthor;
+
+    }
+
+    public async updateRecipe(
+        id: string,
+        title: string,
+        description: string,
+        ingredients: string[]
+    ): Promise<Recipe> {
         const recipe = {
-            id: '2',
             title: title,
             description: description,
-            creationDate: new Date(),
             ingredients: ingredients,
         } as Recipe;
-        this.recipes.push(recipe);
-        return recipe;
-    }
 
-    public updateRecipe(id: string, recipe: Recipe): Recipe {
-        const index = this.recipes.findIndex(recipe => recipe.id === id);
-        this.recipes[index] = recipe;
-        return recipe;
+        return (await this.recipe.findByIdAndUpdate(id, recipe, {
+            new: true,
+        })) as Recipe;
     }
-
-    public deleteRecipe(id: string): Recipe {
-        const recipe = this.recipes.find(recipe => recipe.id === id) as Recipe;
-        this.recipes = this.recipes.filter(recipe => recipe.id !== id);
-        return recipe;
-    }
-
 }
-
-export default RecipeResolver;
