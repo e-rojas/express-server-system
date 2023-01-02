@@ -2,7 +2,6 @@ import mongoose from 'mongoose';
 import Job from '../interfaces/job.interface';
 
 const jobSchema = new mongoose.Schema({
-  id: Number,
   company: String,
   logo: String,
   logoBackground: String,

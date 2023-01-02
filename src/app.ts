@@ -10,6 +10,7 @@ import { ApolloServer } from 'apollo-server-express';
 // import { RecipeResolver, AuthorResolver } from './graphql/recipe.resolver';
 import AuthorResolver from './graphql/reslovers/author-resolver';
 import RecipeResolver from './graphql/reslovers/recipe-resolver';
+import EmploymentResolver from './graphql/reslovers/employment-resolver';
 import dotenv from 'dotenv';
 import { buildSchema } from 'type-graphql';
 dotenv.config();
@@ -41,7 +42,7 @@ class App {
 
   private async initializeApolloServer() {
     const schema = await buildSchema({
-      resolvers: [RecipeResolver, AuthorResolver],
+      resolvers: [RecipeResolver, AuthorResolver, EmploymentResolver],
     })
     const apolloServer = new ApolloServer({ schema });
     await apolloServer.start();
