@@ -15,7 +15,7 @@ export class AuthorResolver {
         return this.authorService.getAuthor(id);
     }
 
-    @Query(() => [Author])
+    @Query(() => [Author]!)
     async authors() {
         return this.authorService.getAuthors();
     }
