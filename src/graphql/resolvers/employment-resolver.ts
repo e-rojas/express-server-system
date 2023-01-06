@@ -1,4 +1,4 @@
-import { Resolver, Arg, FieldResolver, Root, Query } from 'type-graphql';
+import { Resolver, Arg, FieldResolver, Root, Query, Mutation } from 'type-graphql';
 
 import EmploymentModel from '../../models/employment.model';
 import Employment from '../object-types/employment.object-type';
@@ -28,6 +28,22 @@ export class EmploymentResolver {
             .exec();
         return company;
     }
+
+    @Mutation(() => Employment)
+    async createJob(
+        @Arg('title') title: string,
+        @Arg('description') description: string,
+        @Arg('company') company: string,
+    ) {
+        const job = await EmploymentModel.create({
+            title,
+            description,
+            company,
+        });
+        return job;
+    }
+
+
 };
 
 export default EmploymentResolver;
