@@ -43,6 +43,29 @@ export class EmploymentResolver {
         return job;
     }
 
+    @Mutation(() => Employment)
+    async deleteJob(@Arg('id') id: string) {
+        const job = await EmploymentModel.findByIdAndDelete(id);
+        return job;
+    }
+
+    @Mutation(() => Employment)
+    async updateJob(
+        @Arg('id') id: string,
+        @Arg('title') title: string,
+        @Arg('description') description: string,
+        @Arg('company') company: string,
+    ) {
+        const job = await EmploymentModel.findByIdAndUpdate
+            (id, {
+                title,
+                description,
+                company,
+            }, { new: true });
+        return job;
+    }
+
+
 
 };
 
