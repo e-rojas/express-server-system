@@ -9,8 +9,8 @@ class Employment {
     @Field((type) => Company)
     company: Company;
 
-    // @Field((type) => String, { nullable: false })
-    // company: string;
+    @Field((type) => String, { nullable: false })
+    token: string;
 
     @Field((type) => String, { nullable: false })
     title: string;

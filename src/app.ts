@@ -7,13 +7,11 @@ import cors from 'cors';
 import mongoose from 'mongoose';
 import errorMiddleware from './middleware/error. middleware';
 import { ApolloServer } from 'apollo-server-express';
-// import { RecipeResolver, AuthorResolver } from './graphql/recipe.resolver';
-import AuthorResolver from './graphql/resolvers/author-resolver';
-import RecipeResolver from './graphql/resolvers/recipe-resolver';
-import EmploymentResolver from './graphql/resolvers/employment-resolver';
-import CompanyResolver from './graphql/resolvers/company-resolver';
 import dotenv from 'dotenv';
+import { expressjwt } from "express-jwt";
 import { buildSchema } from 'type-graphql';
+import { customAuthChecker } from './graphql/auth-checkers/custom-auth-checker';
+import { resolvers, context } from './graphql/schemas/graphql.schema';
 dotenv.config();
 class App {
   public app: express.Application;
@@ -38,14 +36,28 @@ class App {
         origin: [`${process.env.LOCAL_HOST}`, `${process.env.CLIENT_HOST}`, `${process.env.CLIENT_HOST}/graphql`, `${process.env.APOLLO_URL}`],
       })
     );
+    this.app.use(
+
+      expressjwt({
+        secret: process.env.JWT_SECRET as string,
+        algorithms: ['HS256'],
+        credentialsRequired: false,
+      })
+
+    );
 
   }
 
   private async initializeApolloServer() {
     const schema = await buildSchema({
-      resolvers: [RecipeResolver, AuthorResolver, EmploymentResolver, CompanyResolver],
+      resolvers,
+      authChecker: customAuthChecker,
     })
-    const apolloServer = new ApolloServer({ schema });
+
+    const apolloServer = new ApolloServer({
+      schema,
+      context
+    });
     await apolloServer.start();
     apolloServer.applyMiddleware({ app: this.app, cors: false, path: '/graphql' });
   }

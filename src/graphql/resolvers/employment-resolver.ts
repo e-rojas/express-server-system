@@ -1,8 +1,17 @@
-import { Resolver, Arg, FieldResolver, Root, Query, Mutation } from 'type-graphql';
+import { Resolver, Arg, FieldResolver, Root, Query, Mutation, Authorized, Ctx } from 'type-graphql';
 
 import EmploymentModel from '../../models/employment.model';
 import Employment from '../object-types/employment.object-type';
 import CompanyModel from '../../models/company.model';
+
+interface Context {
+    user: {
+        id: string;
+        name: string;
+        email: string;
+        companyId: string;
+    };
+}
 @Resolver(Employment)
 export class EmploymentResolver {
 
@@ -28,17 +37,20 @@ export class EmploymentResolver {
             .exec();
         return company;
     }
-
+    @Authorized()
     @Mutation(() => Employment)
     async createJob(
         @Arg('title') title: string,
         @Arg('description') description: string,
-        @Arg('company') company: string,
+        @Ctx() ctx: Context,
     ) {
+         const { user: { companyId } } = ctx;
+         
+        
         const job = await EmploymentModel.create({
             title,
             description,
-            company,
+            company: companyId,
         });
         return job;
     }

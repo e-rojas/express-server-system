@@ -3,6 +3,7 @@ interface User {
   name: string;
   email: string;
   password: string;
+  companyId: string;
 }
 
 export default User;
