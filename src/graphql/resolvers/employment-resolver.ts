@@ -44,9 +44,13 @@ export class EmploymentResolver {
         @Arg('description') description: string,
         @Ctx() ctx: Context,
     ) {
+        if (!ctx.user) {
+            throw new Error("You are not authenticated");
+
+        }
          const { user: { companyId } } = ctx;
-         
-        
+
+
         const job = await EmploymentModel.create({
             title,
             description,
@@ -54,25 +58,48 @@ export class EmploymentResolver {
         });
         return job;
     }
-
+    @Authorized()
     @Mutation(() => Employment)
-    async deleteJob(@Arg('id') id: string) {
-        const job = await EmploymentModel.findByIdAndDelete(id);
-        return job;
+    async deleteJob(@Arg('id') id: string, @Ctx() ctx: Context) {
+        if (!ctx.user) {
+            throw new Error("You are not authenticated");
+        }
+
+        const job = await EmploymentModel.findOne({ _id: id, company: ctx.user.companyId });
+
+
+        if (!job) {
+            throw new Error("You are not authorized to delete this job");
+        }
+
+        const deletedJob = await EmploymentModel.findByIdAndDelete(id);
+        return deletedJob;
     }
 
+    @Authorized()
     @Mutation(() => Employment)
     async updateJob(
         @Arg('id') id: string,
         @Arg('title') title: string,
         @Arg('description') description: string,
-        @Arg('company') company: string,
+        @Ctx() ctx: Context,
+
     ) {
+        if (!ctx.user) {
+            throw new Error("You are not authenticated");
+        }
+
+        const jobExists = await EmploymentModel.findOne({ _id: id, company: ctx.user.companyId });
+
+        if (!jobExists) {
+            throw new Error("You are not authorized to update this job");
+        }
+
         const job = await EmploymentModel.findByIdAndUpdate
             (id, {
                 title,
                 description,
-                company,
+                company: ctx.user.companyId,
             }, { new: true });
         return job;
     }
