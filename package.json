@@ -8,7 +8,8 @@
   },
   "scripts": {
     "start": "node dist/server.js",
-    "dev": "nodemon src/server.ts",
+    "compile": "tsc && node dist/server.js",
+    "dev": "./node_modules/nodemon/bin/nodemon.js -e ts  --exec \"npm run compile\"",
     "postinstall": "tsc"
   },
   "repository": {
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/e-rojas/express-server-system#readme",
   "devDependencies": {
+    "@faker-js/faker": "^7.6.0",
     "@types/bcrypt": "^5.0.0",
     "@types/cookie-parser": "^1.4.3",
     "@types/cors": "^2.8.12",
@@ -42,6 +44,7 @@
     "class-validator": "^0.13.2",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
+    "dataloader": "^2.1.0",
     "dotenv": "^16.0.1",
     "express": "^4.18.1",
     "express-jwt": "^8.3.0",
